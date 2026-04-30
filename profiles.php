@@ -1,5 +1,5 @@
 <?php
-require "db.php";
+
 include "header.php";
 
 $page = (int) ($_GET['page'] ?? 1);

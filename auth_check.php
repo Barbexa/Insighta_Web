@@ -1,6 +1,6 @@
 <?php
 session_start();
-require "db.php";
+
 
 // Check if the cookie exists
 $token = $_COOKIE['auth_token'] ?? null;
