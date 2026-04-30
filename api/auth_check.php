@@ -6,7 +6,7 @@ session_start();
 $token = $_COOKIE['auth_token'] ?? null;
 
 if (!$token) {
-    header("Location: login.php");
+    header("Location: /login");
     exit;
 }
 
