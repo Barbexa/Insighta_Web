@@ -32,6 +32,9 @@ function getApiData($endpoint)
 // Fetch data
 $stats = getApiData("/api/v1/stats"); // Ensure your API returns {"total": 50}
 $recent = getApiData("/api/v1/profiles?limit=5"); // Ensure your API returns a JSON list
+// Fetch the 5 most recent hits
+$sql_recent = "SELECT * FROM profiles ORDER BY processed_at DESC LIMIT 5";
+$recent_hits = $conn->query($sql_recent)->fetchAll();
 ?>
 
 <div class="max-w-6xl mx-auto">
@@ -51,45 +54,33 @@ $recent = getApiData("/api/v1/profiles?limit=5"); // Ensure your API returns a J
         </div>
     </div>
 
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-100">
-            <h3 class="font-bold text-gray-800">Recent API Hits</h3>
-        </div>
-        <table class="w-full text-left">
-            <tbody class="divide-y divide-gray-100 text-sm">
-                <?php
-                // 1. Debug the source data once, right before the loop
-                if (!is_array($recent)) {
-                    echo "<pre>ERROR: $recent is not an array. It is: ";
-                    var_dump($recent);
-                    echo "</pre>";
-                    die();
-                }
-                ?>
+    <div class="bg-white p-6 rounded-lg shadow">
+        <h3 class="text-lg font-bold mb-4">Recent API Hits</h3>
 
-                <?php if (!empty($recent)): ?>
-                    <?php foreach ($recent as $row): ?>
-                        <?php
-                        // 2. Validate that each row is an array/object
-                        if (!is_array($row) && !is_object($row))
-                            continue;
-                        ?>
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4 font-semibold text-gray-700 capitalize">
-                                <?= htmlspecialchars($row['name'] ?? 'N/A') ?>
-                            </td>
-                            <td class="px-6 py-4 text-gray-500"><?= htmlspecialchars($row['gender'] ?? 'N/A') ?></td>
-                            <td class="px-6 py-4 text-gray-400">
-                                <?= isset($row['processed_at']) ? date('M d, H:i', strtotime($row['processed_at'])) : 'N/A' ?>
+        <?php if (!empty($recent_hits)): ?>
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="text-gray-400 text-sm border-b">
+                        <th class="pb-2">Name</th>
+                        <th class="pb-2">Status</th>
+                        <th class="pb-2 text-right">Time</th>
+                    </tr>
+                </thead>
+                <tbody class="text-sm">
+                    <?php foreach ($recent_hits as $hit): ?>
+                        <tr class="border-b last:border-none">
+                            <td class="py-3 font-medium capitalize"><?= htmlspecialchars($hit['name']) ?></td>
+                            <td class="py-3 text-green-600">Success</td>
+                            <td class="py-3 text-right text-gray-500">
+                                <?= date('M d, H:i', strtotime($hit['processed_at'])) ?>
                             </td>
                         </tr>
                     <?php endforeach; ?>
-                <?php else: ?>
-                    <tr>
-                        <td colspan="3" class="px-6 py-4 text-center text-gray-500">No data found.</td>
-                    </tr>
-                <?php endif; ?>
-        </table>
+                </tbody>
+            </table>
+        <?php else: ?>
+            <p class="text-gray-500">No recent API activity found.</p>
+        <?php endif; ?>
     </div>
 </div>
 
