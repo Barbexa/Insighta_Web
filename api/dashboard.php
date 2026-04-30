@@ -76,7 +76,8 @@ $recent = getApiData("/api/v1/profiles?limit=5"); // Ensure your API returns a J
                         ?>
                         <tr class="hover:bg-gray-50">
                             <td class="px-6 py-4 font-semibold text-gray-700 capitalize">
-                                <?= htmlspecialchars($row['name'] ?? 'N/A') ?></td>
+                                <?= htmlspecialchars($row['name'] ?? 'N/A') ?>
+                            </td>
                             <td class="px-6 py-4 text-gray-500"><?= htmlspecialchars($row['gender'] ?? 'N/A') ?></td>
                             <td class="px-6 py-4 text-gray-400">
                                 <?= isset($row['processed_at']) ? date('M d, H:i', strtotime($row['processed_at'])) : 'N/A' ?>
@@ -93,6 +94,5 @@ $recent = getApiData("/api/v1/profiles?limit=5"); // Ensure your API returns a J
 </div>
 
 <?php
-// The ../ tells PHP to go up out of the 'api' folder and into the root
-include('../footer.php');
+include '../footer.php';
 ?>
