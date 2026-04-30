@@ -94,5 +94,6 @@ $recent = getApiData("/api/v1/profiles?limit=5"); // Ensure your API returns a J
 </div>
 
 <?php
-include '../footer.php';
+// Use this for the footer
+include __DIR__ . '/../footer.php';
 ?>
