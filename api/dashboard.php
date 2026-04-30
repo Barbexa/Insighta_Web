@@ -56,6 +56,13 @@ $recent = getApiData("/api/v1/profiles?limit=5"); // Ensure your API returns a J
         </div>
         <table class="w-full text-left">
             <tbody class="divide-y divide-gray-100 text-sm">
+                <?php 
+// DEBUG: Peek at what $row really is
+if (!is_array($row)) {
+    echo "<pre>CRASHED AT ROW: "; var_dump($row); echo "</pre>";
+    die(); // This stops the page so you can see the error
+}
+?>
                 <?php if (!empty($recent)): foreach ($recent as $row): ?>
                 <tr class="hover:bg-gray-50">
                     <td class="px-6 py-4 font-semibold text-gray-700 capitalize"><?= htmlspecialchars($row['name']) ?></td>
