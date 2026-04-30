@@ -1,29 +1,13 @@
 {
     "functions": {
-        "*.php": {
+        "index.php": {
             "runtime": "vercel-php@0.9.0"
         }
     },
     "routes": [
         {
-            "src": "/login",
-            "dest": "/login.php"
-        },
-        {
-            "src": "/dashboard",
-            "dest": "/dashboard.php"
-        },
-        {
-            "src": "/profiles",
-            "dest": "/profiles.php"
-        },
-        {
-            "src": "/search",
-            "dest": "/search.php"
-        },
-        {
-            "src": "/",
-            "dest": "/login.php"
+            "src": "/(.*)",
+            "dest": "/index.php"
         }
     ]
 }
