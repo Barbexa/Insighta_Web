@@ -1,40 +1,12 @@
 {
     "functions": {
-        "login.php": {
-            "runtime": "vercel-php@0.9.0"
-        },
-        "dashboard.php": {
-            "runtime": "vercel-php@0.9.0"
-        },
-        "profiles.php": {
-            "runtime": "vercel-php@0.9.0"
-        },
-        "search.php": {
-            "runtime": "vercel-php@0.9.0"
-        },
         "index.php": {
             "runtime": "vercel-php@0.9.0"
         }
     },
     "routes": [
         {
-            "src": "/login",
-            "dest": "/login.php"
-        },
-        {
-            "src": "/dashboard",
-            "dest": "/dashboard.php"
-        },
-        {
-            "src": "/profiles",
-            "dest": "/profiles.php"
-        },
-        {
-            "src": "/search",
-            "dest": "/search.php"
-        },
-        {
-            "src": "/",
+            "src": "/(.*)",
             "dest": "/index.php"
         }
     ]

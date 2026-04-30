@@ -1,12 +1,14 @@
-<?
-// index.php (The Router)
-$path = $_SERVER['REQUEST_URI'];
+<?php
+// index.php
+$path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
 if ($path == '/login') {
-    include 'login.php';
+    require 'login.php';
 } elseif ($path == '/dashboard') {
-    include 'dashboard.php';
+    require 'dashboard.php';
+} elseif ($path == '/profiles') {
+    require 'profiles.php';
 } else {
-    echo "404 Not Found";
+    // Default or 404
+    require 'login.php';
 }
-?>
