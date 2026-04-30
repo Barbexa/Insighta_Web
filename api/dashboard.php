@@ -2,30 +2,31 @@
 // Include your header which handles the session check
 include "header.php";
 
-function getApiData($endpoint) {
-    $url = "https://profile-intelligence-api.pxxl.click" . $endpoint; 
+function getApiData($endpoint)
+{
+    $url = "https://profile-intelligence-api.pxxl.click" . $endpoint;
     $ch = curl_init($url);
-    
+
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     // Pass cookies for authentication
-    curl_setopt($ch, CURLOPT_COOKIE, $_SERVER['HTTP_COOKIE'] ?? ''); 
-    
+    curl_setopt($ch, CURLOPT_COOKIE, $_SERVER['HTTP_COOKIE'] ?? '');
+
     $response = curl_exec($ch);
-    
+
     // Check if the connection failed
     if (curl_errno($ch)) {
         return ['status' => 'error', 'message' => 'Connection to API failed: ' . curl_error($ch)];
     }
 
     // No need for curl_close in modern PHP (it cleans itself up)
-    
+
     $data = json_decode($response, true);
-    
+
     // Check if JSON decoding worked
     if (json_last_error() !== JSON_ERROR_NONE) {
         return ['status' => 'error', 'message' => 'Invalid API response'];
     }
-    
+
     return $data;
 }
 // Fetch data
@@ -56,28 +57,42 @@ $recent = getApiData("/api/v1/profiles?limit=5"); // Ensure your API returns a J
         </div>
         <table class="w-full text-left">
             <tbody class="divide-y divide-gray-100 text-sm">
-                <?php 
-// DEBUG: Peek at what $row really is
-if (!is_array($row)) {
-    echo "<pre>CRASHED AT ROW: "; var_dump($row); echo "</pre>";
-    die(); // This stops the page so you can see the error
-}
-?>
-                <?php if (!empty($recent)): foreach ($recent as $row): ?>
-                <tr class="hover:bg-gray-50">
-                    <td class="px-6 py-4 font-semibold text-gray-700 capitalize"><?= htmlspecialchars($row['name']) ?></td>
-                    <td class="px-6 py-4 text-gray-500"><?= htmlspecialchars($row['gender']) ?></td>
-                    <td class="px-6 py-4 text-gray-400"><?= date('M d, H:i', strtotime($row['processed_at'])) ?></td>
-                </tr>
-                <?php endforeach; else: ?>
-                    <tr><td colspan="3" class="px-6 py-4 text-center">No data found.</td></tr>
+                <?php
+                // 1. Debug the source data once, right before the loop
+                if (!is_array($recent)) {
+                    echo "<pre>ERROR: $recent is not an array. It is: ";
+                    var_dump($recent);
+                    echo "</pre>";
+                    die();
+                }
+                ?>
+
+                <?php if (!empty($recent)): ?>
+                    <?php foreach ($recent as $row): ?>
+                        <?php
+                        // 2. Validate that each row is an array/object
+                        if (!is_array($row) && !is_object($row))
+                            continue;
+                        ?>
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 font-semibold text-gray-700 capitalize">
+                                <?= htmlspecialchars($row['name'] ?? 'N/A') ?></td>
+                            <td class="px-6 py-4 text-gray-500"><?= htmlspecialchars($row['gender'] ?? 'N/A') ?></td>
+                            <td class="px-6 py-4 text-gray-400">
+                                <?= isset($row['processed_at']) ? date('M d, H:i', strtotime($row['processed_at'])) : 'N/A' ?>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <tr>
+                        <td colspan="3" class="px-6 py-4 text-center text-gray-500">No data found.</td>
+                    </tr>
                 <?php endif; ?>
-            </tbody>
         </table>
     </div>
 </div>
 
-<?php 
+<?php
 // The ../ tells PHP to go up out of the 'api' folder and into the root
-include('../footer.php'); 
+include('../footer.php');
 ?>
