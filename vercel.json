@@ -1,7 +1,7 @@
 {
     "functions": {
         "*.php": {
-            "runtime": "vercel-php@0.6.0"
+            "runtime": "vercel-php@0.9.0"
         }
     },
     "routes": [
@@ -20,10 +20,6 @@
         {
             "src": "/search",
             "dest": "/search.php"
-        },
-        {
-            "src": "/logout",
-            "dest": "/logout.php"
         },
         {
             "src": "/",
