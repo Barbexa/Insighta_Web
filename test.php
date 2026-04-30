@@ -2,43 +2,53 @@
 // Include your header which handles the session check
 include "header.php";
 
-// 2. API Helper: This acts as the bridge to your Backend Repo
 function getApiData($endpoint)
 {
-    // Replace with your actual API domain
-    $baseUrl = "https://profile-intelligence-api.pxxl.click";
-    $ch = curl_init($baseUrl . $endpoint);
+    $url = "https://profile-intelligence-api.pxxl.click" . $endpoint;
+    $ch = curl_init($url);
 
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    // Pass cookies (if needed for authentication)
+    // Pass cookies for authentication
     curl_setopt($ch, CURLOPT_COOKIE, $_SERVER['HTTP_COOKIE'] ?? '');
 
     $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
 
-    if ($httpCode !== 200) {
-        return []; // Return empty if API fails
+    // Check if the connection failed
+    if (curl_errno($ch)) {
+        return ['status' => 'error', 'message' => 'Connection to API failed: ' . curl_error($ch)];
     }
 
-    return json_decode($response, true) ?? [];
-}
+    // No need for curl_close in modern PHP (it cleans itself up)
 
-// 3. Fetch Data from your Backend API (Not the DB!)
-$stats = getApiData("/api/v1/stats"); // Expected: ["total" => 50]
-$recent_hits = getApiData("/api/v1/profiles?limit=5"); // Expected: array of profiles
+    $data = json_decode($response, true);
+
+    // Check if JSON decoding worked
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        return ['status' => 'error', 'message' => 'Invalid API response'];
+    }
+
+    return $data;
+}
+// Fetch data
+$stats = getApiData("/api/v1/stats"); // Ensure your API returns {"total": 50}
+$recent = getApiData("/api/v1/profiles?limit=5"); // Ensure your API returns a JSON list
+// Fetch the 5 most recent hits
+$sql_recent = "SELECT * FROM profiles ORDER BY processed_at DESC LIMIT 5";
+$recent_hits = $conn->query($sql_recent)->fetchAll();
 ?>
 
-<div class="max-w-6xl mx-auto p-6">
+<div class="max-w-6xl mx-auto">
     <header class="mb-8">
         <h2 class="text-3xl font-bold text-gray-800">Welcome, Habiba</h2>
-        <p class="text-gray-500">System overview fetched from your API.</p>
+        <p class="text-gray-500">System overview via API.</p>
     </header>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
         <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
             <p class="text-gray-500 text-sm font-semibold uppercase">Total Profiles</p>
-            <p class="text-4xl font-black text-slate-900"><?= $stats['total'] ?? 0 ?></p>
+            <p class="text-4xl font-black text-slate-900">
+                <?= $stats['total'] ?? 0 ?>
+            </p>
         </div>
         <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
             <p class="text-gray-500 text-sm font-semibold uppercase">API Status</p>
@@ -46,7 +56,7 @@ $recent_hits = getApiData("/api/v1/profiles?limit=5"); // Expected: array of pro
         </div>
     </div>
 
-    <div class="bg-white p-6 rounded-lg shadow border border-gray-200">
+    <div class="bg-white p-6 rounded-lg shadow">
         <h3 class="text-lg font-bold mb-4">Recent API Hits</h3>
 
         <?php if (!empty($recent_hits)): ?>
@@ -61,10 +71,12 @@ $recent_hits = getApiData("/api/v1/profiles?limit=5"); // Expected: array of pro
                 <tbody class="text-sm">
                     <?php foreach ($recent_hits as $hit): ?>
                         <tr class="border-b last:border-none">
-                            <td class="py-3 font-medium capitalize"><?= htmlspecialchars($hit['name'] ?? 'N/A') ?></td>
+                            <td class="py-3 font-medium capitalize">
+                                <?= htmlspecialchars($hit['name']) ?>
+                            </td>
                             <td class="py-3 text-green-600">Success</td>
                             <td class="py-3 text-right text-gray-500">
-                                <?= isset($hit['processed_at']) ? date('M d, H:i', strtotime($hit['processed_at'])) : 'N/A' ?>
+                                <?= date('M d, H:i', strtotime($hit['processed_at'])) ?>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -77,6 +89,6 @@ $recent_hits = getApiData("/api/v1/profiles?limit=5"); // Expected: array of pro
 </div>
 
 <?php
-// Include footer
+// Use this for the footer
 include __DIR__ . '/../footer.php';
 ?>
