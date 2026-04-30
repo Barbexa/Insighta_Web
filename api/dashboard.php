@@ -2,20 +2,32 @@
 // Include your header which handles the session check
 include "header.php";
 
-// Helper function to fetch data from your API
 function getApiData($endpoint) {
-    // Note: Since Vercel is proxying to PXXL via vercel.json, 
-    // the URL is relative to your Vercel domain.
     $url = "https://profile-intelligence-api.pxxl.click" . $endpoint; 
     $ch = curl_init($url);
+    
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    // Pass the user's cookie so the API knows they are logged in
+    // Pass cookies for authentication
     curl_setopt($ch, CURLOPT_COOKIE, $_SERVER['HTTP_COOKIE'] ?? ''); 
+    
     $response = curl_exec($ch);
-    curl_close($ch);
-    return json_decode($response, true);
-}
+    
+    // Check if the connection failed
+    if (curl_errno($ch)) {
+        return ['status' => 'error', 'message' => 'Connection to API failed: ' . curl_error($ch)];
+    }
 
+    // No need for curl_close in modern PHP (it cleans itself up)
+    
+    $data = json_decode($response, true);
+    
+    // Check if JSON decoding worked
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        return ['status' => 'error', 'message' => 'Invalid API response'];
+    }
+    
+    return $data;
+}
 // Fetch data
 $stats = getApiData("/api/v1/stats"); // Ensure your API returns {"total": 50}
 $recent = getApiData("/api/v1/profiles?limit=5"); // Ensure your API returns a JSON list
@@ -58,4 +70,7 @@ $recent = getApiData("/api/v1/profiles?limit=5"); // Ensure your API returns a J
     </div>
 </div>
 
-<?php include "footer.php"; ?>
+<?php 
+// The ../ tells PHP to go up out of the 'api' folder and into the root
+include('../footer.php'); 
+?>
