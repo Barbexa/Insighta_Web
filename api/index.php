@@ -1,14 +1,18 @@
 <?php
 // index.php
+
 $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
+// Direct the router to your files inside the 'api/' folder
 if ($path == '/login') {
-    require 'login.php';
+    require 'api/login.php';
 } elseif ($path == '/dashboard') {
-    require 'dashboard.php';
+    require 'api/dashboard.php';
 } elseif ($path == '/profiles') {
-    require 'profiles.php';
+    require 'api/profiles.php';
+} elseif ($path == '/search') {
+    require 'api/search.php'; // <--- ADDED THIS
 } else {
-    // Default or 404
-    require 'login.php';
+    // Default to login if no path matches
+    require 'api/login.php';
 }
