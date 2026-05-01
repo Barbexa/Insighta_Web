@@ -84,4 +84,4 @@ $profiles = getApiData("/api/profiles?page=$page&limit=10&gender=" . urlencode($
     </div>
 </div>
 
-<?php include "footer.php"; ?>
+<?php include __DIR__ . '/../footer.php'; ?>
