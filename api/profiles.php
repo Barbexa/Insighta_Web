@@ -1,19 +1,34 @@
 <?php
-
 include "header.php";
 
+// 1. Helper to talk to your Backend API
+function getApiData($endpoint)
+{
+    $baseUrl = "https://profile-intelligence-api.pxxl.click";
+    $ch = curl_init($baseUrl . $endpoint);
+
+    // We MUST pass the version header and auth token
+    $headers = [
+        "X-API-Version: 1",
+        "Authorization: Bearer " . ($_COOKIE['auth_token'] ?? '')
+    ];
+
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
+    $response = curl_exec($ch);
+    $data = json_decode($response, true);
+
+    // Return the data array if successful, or empty array
+    return $data['data'] ?? [];
+}
+
+// 2. Prepare Variables
 $page = (int) ($_GET['page'] ?? 1);
-$limit = 10;
-$offset = ($page - 1) * $limit;
-
-// Filter logic
 $gender = $_GET['gender'] ?? '';
-$sql = "SELECT * FROM profiles WHERE 1=1";
-if ($gender)
-    $sql .= " AND gender = " . $conn->quote($gender);
-$sql .= " ORDER BY processed_at DESC LIMIT $limit OFFSET $offset";
 
-$profiles = $conn->query($sql)->fetchAll();
+// 3. Fetch from API (The API handles the database logic now)
+$profiles = getApiData("/api/profiles?page=$page&limit=10&gender=" . urlencode($gender));
 ?>
 
 <div class="max-w-6xl mx-auto">
@@ -23,8 +38,8 @@ $profiles = $conn->query($sql)->fetchAll();
         <form method="GET" class="flex gap-2">
             <select name="gender" class="border rounded px-3 py-1 text-sm bg-white">
                 <option value="">All Genders</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
+                <option value="male" <?= $gender == 'male' ? 'selected' : '' ?>>Male</option>
+                <option value="female" <?= $gender == 'female' ? 'selected' : '' ?>>Female</option>
             </select>
             <button type="submit" class="bg-slate-800 text-white px-4 py-1 rounded text-sm">Filter</button>
         </form>
@@ -41,28 +56,32 @@ $profiles = $conn->query($sql)->fetchAll();
                 </tr>
             </thead>
             <tbody class="divide-y">
-                <?php foreach ($profiles as $p): ?>
+                <?php if (!empty($profiles)): ?>
+                    <?php foreach ($profiles as $p): ?>
+                        <tr>
+                            <td class="p-4 font-medium capitalize"><?= htmlspecialchars($p['name'] ?? 'N/A') ?></td>
+                            <td class="p-4 capitalize"><?= htmlspecialchars($p['gender'] ?? 'N/A') ?></td>
+                            <td class="p-4"><?= isset($p['probability']) ? round($p['probability'] * 100) . '%' : 'N/A' ?></td>
+                            <td class="p-4 text-right">
+                                <a href="profile-detail.php?id=<?= $p['id'] ?>" class="text-blue-500 hover:underline">Detail</a>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php else: ?>
                     <tr>
-                        <td class="p-4 font-medium capitalize">
-                            <?= $p['name'] ?>
-                        </td>
-                        <td class="p-4">
-                            <?= $p['gender'] ?>
-                        </td>
-                        <td class="p-4">
-                            <?= round($p['probability'] * 100) ?>%
-                        </td>
-                        <td class="p-4 text-right">
-                            <a href="profile-detail.php?id=<?= $p['id'] ?>" class="text-blue-500 hover:underline">Detail</a>
-                        </td>
+                        <td colspan="4" class="p-4 text-center text-gray-500">No profiles found.</td>
                     </tr>
-                <?php endforeach; ?>
+                <?php endif; ?>
             </tbody>
         </table>
     </div>
 
     <div class="mt-6 flex gap-2">
-        <a href="?page=<?= max(1, $page - 1) ?>" class="px-4 py-2 bg-white border rounded text-sm">Prev</a>
-        <a href="?page=<?= $page + 1 ?>" class="px-4 py-2 bg-white border rounded text-sm">Next</a>
+        <a href="?page=<?= max(1, $page - 1) ?>&gender=<?= urlencode($gender) ?>"
+            class="px-4 py-2 bg-white border rounded text-sm">Prev</a>
+        <a href="?page=<?= $page + 1 ?>&gender=<?= urlencode($gender) ?>"
+            class="px-4 py-2 bg-white border rounded text-sm">Next</a>
     </div>
 </div>
+
+<?php include "footer.php"; ?>
